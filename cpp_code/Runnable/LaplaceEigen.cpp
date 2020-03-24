@@ -13,13 +13,16 @@ LaplaceEigen::LaplaceEigen(int grid_resolution, int N, int density_grid_resoluti
 
 	// vfield is a 2D array with velocity matrices
 	// TODO: why 2D?
-	this->vfield[0].resize(this->mx + 1, this->my + 1);
-	this->vfield[1].resize(this->mx + 1, this->my + 1);
+	// Answer: One is for velocity at x direction and the other on y direction?
+	// TODO: follow-up: if so, reformat so that velocity at each position is in one vector
+	//this->vfield[0].resize(this->mx + 1, this->my + 1);
+	//this->vfield[1].resize(this->mx + 1, this->my + 1);
+	this->vfield = new glm::vec3[(this->mx + 1) * (this->my + 1)];
 
 	this->density.resize(this->dmx, this->dmy);
 
-	this->coef = (double*)malloc(sizeof(double) * N);
-	this->forces_dw = (double*)malloc(sizeof(double) * N);
+	this->coef = new double[N];
+	this->forces_dw = new double[N];
 
 	// Fill lookup table
 	std::cout << "Filling lookup table" << std::endl;
@@ -34,6 +37,24 @@ LaplaceEigen::LaplaceEigen(int grid_resolution, int N, int density_grid_resoluti
 	this->precompute_dynamics();
 
 	std::cout << "Done" << std::endl;
+}
+
+glm::vec3 LaplaceEigen::getVelocity(int x, int y) {
+	return this -> vfield[x * (this->my + 1) + y];
+}
+
+void LaplaceEigen::setVelocity(int x, int y, glm::vec3 value)
+{
+	this->vfield[x * (this->my + 1) + y] = value;
+}
+
+glm::vec3 LaplaceEigen::getVelBasis(int k, int x, int y)
+{
+	return glm::vec3();
+}
+
+void LaplaceEigen::setVelBasis(int k, int x, int y, glm::vec3 value)
+{
 }
 
 void LaplaceEigen::step()
@@ -73,7 +94,7 @@ void LaplaceEigen::add_particles(int n)
 	this->particle_index = (int*)malloc(sizeof(int) * n);
 
 	for (int i = 0; i < this->num_particles; i++) {
-		Eigen::Vector2d rand_pos((double)rand() / RAND_MAX, (double)rand() / RAND_MAX);
+		glm::vec3 rand_pos((float)rand() / RAND_MAX, (float)rand() / RAND_MAX, 0.0f);
 		this->particles.push_back(rand_pos);
 	}
 }
@@ -130,8 +151,24 @@ int LaplaceEigen::basis_rlookup(int k1, int k2)
 	return 0;
 }
 
+/**
+ * This matrix is building up the vector field with velocity basis
+ */
 void LaplaceEigen::expand_basis()
 {
+	// Clean matrix
+	delete this->vfield;
+	this->vfield = new glm::vec3[(this->mx + 1) * (this->my + 1)];
+	// Calculate superposition of basis fields
+	for (int k = 0; k < this->N; k++) {
+		// loop through all N basis
+		for (int i = 0; i < this->mx + 1; i++) {
+			for (int j = 0; j < this->my + 1; j++) {
+				// Loop through all positions in the grid
+				this->setVelocity(i, j, (float)this->coef[k] * this->getVelBasis(k, i, j) + this->getVelocity(i, j));
+			}
+		}
+	}
 }
 
 void LaplaceEigen::fill_lookup_table()

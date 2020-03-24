@@ -4,6 +4,7 @@
 #include <Eigen/SparseCore>
 #include <Eigen/Dense>
 #include <iostream>
+#include <glm/glm.hpp>
 
 class LaplaceEigen
 {
@@ -13,14 +14,17 @@ public:
 
 	// Velocity basis
 	// TODO: why does this contain 4 dimensions?
-	double**** vel_basis;
+	// Answer: N basis with 2 vector directions on x and y coordinates
+	glm::vec3* vel_basis;
+	// double**** vel_basis;
 
 	// velocity basis coefficients
 	double* coef;
 
 	// current velocity field
 	// TODO: why is this 3D?
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> vfield[2];
+	glm::vec3* vfield;
+	// Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> vfield[2];
 
 	// Basis field eigenvalues
 	double* eigs, * eigs_inv, eigs_inv_root;
@@ -51,7 +55,7 @@ public:
 	// Particles
 	int* particle_index;
 	// a list of 2D coordinates, removed the coordinates of particle tail (we'll see how it looks)
-	std::vector<Eigen::Vector2d> particles;   
+	std::vector<glm::vec3> particles;   
 	int num_particles = 0;
 	int particle_tail_length = 3;
 
@@ -67,6 +71,10 @@ public:
 
 	LaplaceEigen();
 	LaplaceEigen(int grid_resolution, int N, int density_grid_resolution);
+	glm::vec3 getVelocity(int x, int y);
+	void setVelocity(int x, int y, glm::vec3 value);
+	glm::vec3 getVelBasis(int k, int x, int y);
+	void setVelBasis(int k, int x, int y, glm::vec3 value);
 
 	void step();
 	void precompute_basis_fields();

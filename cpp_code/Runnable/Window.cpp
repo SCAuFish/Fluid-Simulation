@@ -1,6 +1,7 @@
 #include "Window.h"
 
 std::string bunnyFilename = ".\\Objects\\bunny.obj";
+std::string sphereFilename = ".\\Objects\\sphere.obj";
 ObjectPointerNode* Window::head, * Window::tail;
 PointCloud* bunny;
 Light* directionalLight, * pointLight;
@@ -121,6 +122,14 @@ bool Window::initializeObjects()
 
 	le_object = new LaplaceEigen(GRID_RES, BASIS_DIM, DENS_RES);
 	le_object->add_particles(PARTICLE_NUM);
+
+	for (int i = 0; i < le_object->particles.size(); i++) {
+		PointCloud* particle = new PointCloud(sphereFilename, 1, 5*(2 * le_object->particles[i][0]-1), 5*(2*le_object->particles[i][1]-1));
+		particle->scale(0.3, 0.3, 0.3);
+		particle->translate();
+		particles.push_back(particle);
+	}
+
 	return true;
 }
 
@@ -261,6 +270,11 @@ void Window::displayCallback(GLFWwindow* window)
 	}
 	// Render the object.
 	currentObj->draw();
+
+	for (PointCloud* particle : particles) {
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(particle->getModel()));
+		particle->draw();
+	}
 
 	if (pointLightOn) {
 		// This should not be drawn before other objects because it resets model for itself
