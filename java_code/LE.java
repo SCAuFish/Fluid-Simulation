@@ -326,9 +326,9 @@ public class LE {
 			energy += this.eigs_inv[i] * (this.coef[i] * this.coef[i]);
 
 		return energy;
-		}
+	}
 
-		public void set_energy(double desired_e) {
+	public void set_energy(double desired_e) {
 		double cur_e = this.cur_energy();
 		double fact = Math.sqrt(desired_e)/Math.sqrt(cur_e);
 
@@ -635,8 +635,6 @@ public class LE {
 
 		this.N_sqrt = (int) Math.floor(Math.sqrt((double)N));
 
-		this.basis_lookup_table = new int[this.N][2];
-		this.basis_rlookup_table = new int[N_sqrt+1][N_sqrt+1];
         // Cheng: Let me see see what these two tables are doing
         // Cheng: these two tables are inverses of each other... interesting
         // Cheng: the reason for it to be two, is it because it is only simulating 2-D fluid?
@@ -733,3 +731,4 @@ public class LE {
 			this.forces_dw[i] += dw[i];
     }
 }
+ 

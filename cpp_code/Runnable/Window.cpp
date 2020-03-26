@@ -123,6 +123,10 @@ bool Window::initializeObjects()
 	le_object = new LaplaceEigen(GRID_RES, BASIS_DIM, DENS_RES);
 	le_object->add_particles(PARTICLE_NUM);
 
+	for (int i = 0; i < BASIS_DIM; i++) {
+		le_object->forces_dw[i] = 10 * ((double)std::rand()) / RAND_MAX;
+	}
+
 	for (int i = 0; i < le_object->particles.size(); i++) {
 		PointCloud* particle = new PointCloud(sphereFilename, 1, 5*(2 * le_object->particles[i][0]-1), 5*(2*le_object->particles[i][1]-1));
 		particle->scale(0.3, 0.3, 0.3);
@@ -271,9 +275,14 @@ void Window::displayCallback(GLFWwindow* window)
 	// Render the object.
 	currentObj->draw();
 
-	for (PointCloud* particle : particles) {
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(particle->getModel()));
-		particle->draw();
+	le_object->step();
+	le_object->advect_particles();
+	for (int i = 0; i < PARTICLE_NUM; i++) {
+		delete particles[i];
+		particles[i] = new PointCloud(sphereFilename, 1, 5 * (2 * le_object->particles[i][0] - 1), 5 * (2 * le_object->particles[i][1] - 1));
+		particles[i]->scale(0.3, 0.3, 0.3);
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(particles[i]->getModel()));
+		particles[i]->draw();
 	}
 
 	if (pointLightOn) {

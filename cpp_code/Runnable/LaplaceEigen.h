@@ -5,6 +5,7 @@
 #include <Eigen/Dense>
 #include <iostream>
 #include <glm/glm.hpp>
+#include <math.h>
 
 class LaplaceEigen
 {
@@ -19,7 +20,7 @@ public:
 	// double**** vel_basis;
 
 	// velocity basis coefficients
-	double* coef;
+	Eigen::VectorXd* coef;
 
 	// current velocity field
 	// TODO: why is this 3D?
@@ -27,11 +28,11 @@ public:
 	// Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> vfield[2];
 
 	// Basis field eigenvalues
-	double* eigs, * eigs_inv, eigs_inv_root;
+	double* eigs, * eigs_inv, * eigs_inv_root;
 
 	// structure coefficient matrices
 	// TODO: some coefficients but what are they?
-	Eigen::SparseMatrix<double>* Ck;
+	Eigen::SparseMatrix<double>** Ck;
 
 	// viscosity
 	double visc = 0.0;
@@ -50,7 +51,7 @@ public:
 	int N, N_sqrt;
 
 	// tables for basis field lookup from vector eigenvalue k1, k2
-	int** basis_lookup_table, basis_rlookup_table;
+	int* basis_lookup_table, *basis_rlookup_table;   // They are actually 2D
 
 	// Particles
 	int* particle_index;
@@ -82,9 +83,11 @@ public:
 
 	double coefdensity(int a1, int b1, int a2, int b2, int c, int tt);
 
-	double*** basis_field_2d_rect(int n, int m, double amp);
+	glm::vec3* basis_field_2d_rect(int n, int m, double amp);
 
 	double cur_energy(); // This seems to be a non-essential function that only outputs some useless energy value
+
+	void set_energy(double prev_e);
 
 	void attract_particles();
 
@@ -93,7 +96,7 @@ public:
 	double getInterpolatedValue(double x, double y, int index);
 
 	// Get the velocity at a coordinate using bilinear interpolation
-	double* vel_at_bilinear(double x, double y);
+	glm::vec3 vel_at_bilinear(double x, double y);
 
 	// Get velocity using cubic interpolation
 	double* vel_at_cubic(double x, double y);
